@@ -19,14 +19,14 @@ async def on_ready():
 @bot.command(name="battle")
 async def battle(ctx):
     print(f"Received battle command from {ctx.author.name} in {ctx.channel.name}")
-    # await ctx.send("Generating card battle...")
+    await ctx.send("Generating card battle...")
     await generate_battle(ctx)
 
 @bot.tree.command(name="battle", description="Start a card battle")
 @app_commands.describe(card_name="(Optional) Specify the first card to use in the battle")
 async def battle(interaction: discord.Interaction, card_name: str = None):
     await interaction.response.defer(thinking=True)
-    # await interaction.followup.send("Generating card battle...")
+    await interaction.followup.send("Generating card battle...")
     await generate_battle(interaction.channel)
 
 bot.run(TOKEN)
