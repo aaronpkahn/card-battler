@@ -31,7 +31,14 @@ async def battle(ctx):
 @app_commands.describe(card_name="(Optional) Specify the first card to use in the battle")
 async def battle(interaction: discord.Interaction, card_name: str = None):
     await interaction.response.defer(thinking=True)
-    path, name_a, name_b, cube_source = await generate_battle()
+    if card_name:
+        path, name_b, cube_source, error_msg = await generate_battle_from_card(card_name)
+        if error_msg:
+            await interaction.edit_original_response(content=error_msg)
+            return
+        name_a = card_name
+    else:
+        path, name_a, name_b, cube_source = await generate_battle()
     msg = await interaction.edit_original_response(
         content=f"**{name_a}** 🆚 **{name_b}** (from: {cube_source}) — who wins?",
         attachments=[discord.File(path)]

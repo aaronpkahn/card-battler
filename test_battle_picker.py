@@ -2,12 +2,12 @@
 
 import asyncio
 import aiohttp
-from battle import get_daily_battle_cards, get_scryfall_card
+from battle import get_battle_cards, get_scryfall_card
 from generate_battle_image import create_battle_image
 
 async def main():
     async with aiohttp.ClientSession() as session:
-        card_a, card_b, cube_source = await get_daily_battle_cards(session)
+        card_a, card_b, cube_source = await get_battle_cards(session)
         card_a_url = await get_scryfall_card(session, card_a)
         card_b_url = await get_scryfall_card(session, card_b)
 

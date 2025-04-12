@@ -12,7 +12,7 @@ async def generate_battle():
     async with aiohttp.ClientSession() as session:
         # loop 10 times to find a valid battle
         for _ in range(10):
-            name_a, name_b, cube_source = await get_daily_battle_cards(session)
+            name_a, name_b, cube_source = await get_battle_cards(session)
             card_a_url = await get_scryfall_card(session, name_a)
             card_b_url = await get_scryfall_card(session, name_b)
 
@@ -22,6 +22,47 @@ async def generate_battle():
 
         path = create_battle_image(card_a_url, card_b_url, name_a, name_b)
         return path, name_a, name_b, cube_source
+
+# returns a tuple of (path, name_b, cube_source, error_msg)
+async def generate_battle_from_card(card_name):
+    async with aiohttp.ClientSession() as session:
+        # Lookup base card
+        card_a_data = await get_scryfall_data(session, card_name)
+        if not card_a_data or "image_uris" not in card_a_data:
+            return None, None, None, "invalid card"
+
+        cmc = card_a_data.get("cmc", 0)
+        colors = tuple(sorted(card_a_data.get("color_identity", [])))
+
+        name_b = None
+        opponent_url = None
+        cube_source = None
+
+        random.shuffle(OTHER_CUBE_IDS)
+        for cube_id in OTHER_CUBE_IDS:
+            try:
+                other_data = await fetch_json(session, f"https://cubecobra.com/cube/api/cubeJSON/{cube_id}")
+                candidates = [
+                    c for c in other_data["cards"]["mainboard"]
+                    if c.get("cmc", 0) == cmc and tuple(sorted(c.get("color_identity", []))) == colors and c["name"] != card_a_data["name"]
+                ]
+                if candidates:
+                    candidate = random.choice(candidates)
+                    name_b = candidate["name"]
+                    opponent_card = await get_scryfall_data(session, name_b)
+                    if opponent_card and "image_uris" in opponent_card:
+                        opponent_url = opponent_card["image_uris"]["normal"]
+                        cube_source = cube_id
+                        break
+            except Exception as e:
+                continue
+
+        if not opponent_url:
+            return None, None, None, f"❌ Couldn't find a valid opponent for `{card_name}`."
+
+        card_a_url = card_a_data["image_uris"]["normal"]
+        path = create_battle_image(card_a_url, opponent_url, card_a_data["name"], name_b)
+        return path, name_b, cube_source, None
 
 def card_key(card):
     return (card["details"].get("cmc", 0), tuple(sorted(card["details"].get("colorcategory", []))))
@@ -46,15 +87,11 @@ async def fetch_json(session, url):
     async with session.get(url) as resp:
         return await resp.json()
 
-async def get_daily_battle_cards(session):
-    from battle import fetch_json, card_key  # Safe even inside own file for modular reuse
-
+async def get_battle_cards(session):
     cube_data = await fetch_json(session, CUBE_URL)
     my_cards = cube_data["cards"]["mainboard"]
     card_a = get_my_card(my_cards)
-
     key = card_key(card_a)
-
     random.shuffle(OTHER_CUBE_IDS)
     for cube_id in OTHER_CUBE_IDS:
         other_url = f"https://cubecobra.com/cube/api/cubeJSON/{cube_id}"
@@ -75,3 +112,11 @@ async def get_scryfall_card(session, name):
     url = f"https://api.scryfall.com/cards/named?exact={name.replace(' ', '%20')}"
     data = await fetch_json(session, url)
     return data["image_uris"]["normal"] if "image_uris" in data else None
+
+async def get_scryfall_data(session, name):
+    url = f"https://api.scryfall.com/cards/named?exact={name.replace(' ', '%20')}"
+    try:
+        data = await fetch_json(session, url)
+        return data if "image_uris" in data else None
+    except:
+        return None
