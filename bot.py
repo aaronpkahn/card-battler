@@ -1,6 +1,5 @@
 import discord
-from battle import generate_battle
-from generate_battle_image import create_battle_image
+from battle import generate_battle, generate_battle_from_card
 from discord.ext import commands
 from discord import app_commands
 import os
