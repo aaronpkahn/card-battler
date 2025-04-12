@@ -8,7 +8,7 @@ from generate_battle_image import create_battle_image
 CUBE_URL = "https://cubecobra.com/cube/api/cubeJSON/thepenismightier"
 OTHER_CUBE_IDS = ["modovintage", "wtwlf123", "LSVCube", "AlphaFrog"]
 
-async def generate_battle(ctx):
+async def generate_battle():
     async with aiohttp.ClientSession() as session:
         # loop 10 times to find a valid battle
         for _ in range(10):
@@ -21,9 +21,7 @@ async def generate_battle(ctx):
             break
 
         path = create_battle_image(card_a_url, card_b_url, name_a, name_b)
-        msg = await ctx.send(file=discord.File(path), content=f"**{name_a}** 🆚 **{name_b}** (from: {cube_source}) — who wins?")
-        await msg.add_reaction("🅰️")
-        await msg.add_reaction("🅱️")
+        return path, name_a, name_b, cube_source
 
 def card_key(card):
     return (card["details"].get("cmc", 0), tuple(sorted(card["details"].get("colorcategory", []))))

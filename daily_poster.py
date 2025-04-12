@@ -25,7 +25,10 @@ async def post_daily_battle():
     # await log_bot_permissions(channel)
     # note: this while loop is a bug, need to fix nested loops
     while not client.is_closed():
-        generate_battle(channel)
+        path, name_a, name_b, cube_source = await generate_battle()
+        msg = await CHANNEL_ID.send(file=discord.File(path), content=f"**{name_a}** 🆚 **{name_b}** (from: {cube_source}) — who wins?")
+        await msg.add_reaction("🅰️")
+        await msg.add_reaction("🅱️")
 
         await asyncio.sleep(86400)  # 24 hours
 
