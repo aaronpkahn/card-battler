@@ -1,4 +1,4 @@
-discord.py>=2.5.2
 aiohttp>=3.11.14
+discord.py>=2.5.2
 Pillow>=11.1.0
 requests>=2.32.3

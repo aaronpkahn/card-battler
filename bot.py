@@ -9,6 +9,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+BATTLE_MSG = os.getenv("BATTLE_MSG")
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
 @bot.event
@@ -19,7 +20,8 @@ async def on_ready():
 @bot.command(name="battle")
 async def battle(ctx):
     print(f"Received battle command from {ctx.author.name} in {ctx.channel.name}")
-    await ctx.send("Generating card battle...")
+    if BATTLE_MSG:
+        await ctx.send(BATTLE_MSG)
     await generate_battle(ctx)
 
 @bot.tree.command(name="battle", description="Start a card battle")
