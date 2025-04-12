@@ -1,5 +1,5 @@
 import discord
-from battle import generate_battle, generate_battle_from_card
+from battle import generate_battle, generate_battle_from_cube_card
 from discord.ext import commands
 from discord import app_commands
 import os
@@ -31,7 +31,7 @@ async def battle(ctx):
 async def battle(interaction: discord.Interaction, card_name: str = None):
     await interaction.response.defer(thinking=True)
     if card_name:
-        path, name_b, cube_source, error_msg = await generate_battle_from_card(card_name)
+        path, name_b, cube_source, error_msg = await generate_battle_from_cube_card(card_name)
         if error_msg:
             await interaction.edit_original_response(content=error_msg)
             return
