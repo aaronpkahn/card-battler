@@ -28,8 +28,6 @@ async def battle(ctx):
 @app_commands.describe(card_name="(Optional) Specify the first card to use in the battle")
 async def battle(interaction: discord.Interaction, card_name: str = None):
     await interaction.response.defer(thinking=True)
-    if BATTLE_MSG:
-        await interaction.followup.send(BATTLE_MSG)
-    await generate_battle(interaction.channel)
+    await generate_battle(interaction.followup)
 
 bot.run(TOKEN)
